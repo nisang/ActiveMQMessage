@@ -1,0 +1,3 @@
+/message-consumer/target/*
+/message-entity/target/*
+/message-producer/target/*

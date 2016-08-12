@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+                       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                     ">
+	<!-- 配置JMS连接工厂 -->
+	<bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://activemq:61616"/>
+        <property name="userName" value="admin"/>
+        <property name="password" value="admin" />
+	</bean>
+	<bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">
+        <property name="connectionFactory" ref="targetConnectionFactory"/>
+        <property name="maxConnections" value="10"/>
+    </bean>
+    <bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+        <property name="targetConnectionFactory" ref="pooledConnectionFactory"/>
+    </bean>
+
+	 <!-- 设置消息监听类型 -->
+	<bean id="queueDestination" class="org.apache.activemq.command.ActiveMQQueue">  
+        <constructor-arg index="0" value="SEARCHQUEUE"/>
+    </bean>
+    <bean id="topicDestination" class="org.apache.activemq.command.ActiveMQTopic">  
+        <constructor-arg index="0" value="SEARCHTOPIC"/>
+    </bean>
+    <!-- 监听器 需实现MessageListener -->
+	<bean id="messageQueueListener" class="io.dandan.message.MessageQueueReceiver" ></bean>
+	<bean id="messageTopicListener" class="io.dandan.message.MessageTopiceReceiver" ></bean>
+	
+	<!--  <bean id="listenerContainer"
+		class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="destination" ref="topicDestination" />
+		<property name="messageListener" ref="messageListener" />
+	</bean>-->
+	<!--  -->
+	<bean id="QueuelistenerContainer"
+          class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactory" />
+        <property name="destination" ref="queueDestination" />
+        <property name="messageListener" ref="messageQueueListener" />
+    </bean>
+    <bean id="TopiclistenerContainer"
+          class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactory" />
+        <property name="destination" ref="topicDestination" />
+        <property name="messageListener" ref="messageTopicListener" />
+    </bean>
+</beans>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+                       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                     ">
+	<!-- 配置JMS连接工厂 -->
+	<bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://activemq:61616"/>
+        <property name="userName" value="admin"/>
+        <property name="password" value="admin" />
+	</bean>
+	<bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">
+        <property name="connectionFactory" ref="targetConnectionFactory"/>
+        <property name="maxConnections" value="10"/>
+    </bean>
+    <bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+        <property name="targetConnectionFactory" ref="pooledConnectionFactory"/>
+    </bean>
+    <bean id="queueDestination" class="org.apache.activemq.command.ActiveMQQueue">
+        <!-- 设置消息队列的名字 -->
+        <constructor-arg>
+            <value>queue1</value>
+        </constructor-arg>
+    </bean>
+        <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connectionFactory" />
+        <property name="defaultDestination" ref="queueDestination" />
+        <property name="receiveTimeout" value="10000" /><!-- 10000 -->
+    </bean>
+        <!--queue消息生产者 -->
+    <bean id="messageProducer" class="io.dandan.message.MessageProducer">
+        <property name="jmsTemplate" ref="jmsTemplate"></property>
+    </bean>
+</beans>
